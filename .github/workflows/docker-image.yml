@@ -1,0 +1,25 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: authenticate aws 
+      run: |
+        aws configure
+        ACCESS_KEY
+        
+    - name: Build the Docker image
+      run: |
+        docker build -t project-ecs:$(date +%s) -f Dockerfile
+        docker 
