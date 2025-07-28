@@ -15,7 +15,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-west-2
+        aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v1
@@ -23,11 +23,14 @@ jobs:
         registry: ${{ secrets.ECR_URI }}
 
     - name: Build the Docker image
+      id: docker_build 
       run: |
-        docker build -t project-ecs:$(date +%s) .
+        IMAGE_TAG=$(date +%s)
+        echo "::set-output name=tag::$IMAGE_TAG"
+        docker build -t project-ecs:$IMAGE_TAG .
 
     - name: Push the Docker image to ECR 
       run: |
-          docker tag project-ecs:$(date +%s) ${{ secrets.ECR_URI }}:latest
+          docker tag project-ecs:${{ steps.docker_build.outputs.tag }} ${{ secrets.ECR_URI }}:latest
           docker push ${{ secrets.ECR_URI }}:latest
         
