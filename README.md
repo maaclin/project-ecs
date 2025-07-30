@@ -10,7 +10,7 @@ This project outlines the deployment of the AWS Threat Composer application usin
 
 This project demonstrates a streamlined process for deploying a containerized web application to AWS. It leverages Docker for efficient application packaging, GitHub Actions for automated image building and pushing to ECR, and Terraform for defining and managing all necessary AWS infrastructure, including, ECS, Fargate, ALB and Route53. The goal is to create a robust, scalable, and highly available web service accessible via my custom domain.
 
-![Architecture](images/diagram.jpg)
+![Architecture](./images/diagram.png)
 
 ### Architecture & Components
 
@@ -77,7 +77,7 @@ Important Note: The base domain (ysolomprojects.com) and its initial Hosted Zone
 ECR Repository
 Elastic Container Registry (ECR): A fully-managed Docker container registry that stores our application's Docker images. Terraform will reference the image URI from this repository in the ECS Task Definition.
 
-![End result](images/end.jpg)
+![End result](./images/end.png)
 
 ### 5. Considerations
 
