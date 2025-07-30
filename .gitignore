@@ -2,3 +2,4 @@
 /terraform/.terraform.lock.hcl
 /terraform/*.tfvars
 /terraform/*.tfstate
+.DS_Store
