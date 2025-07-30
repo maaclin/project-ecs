@@ -32,16 +32,20 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
+      working-directory: ./terraform/
 
     - name: Terraform Plan
       run: terraform plan -destroy -input=false
+      working-directory: ./terraform/
 
     - name: Terraform Destroy
       if: github.event.inputs.confirm_destroy == 'yes'
       run: terraform destroy -auto-approve -input=false
+      working-directory: ./terraform/
 
     - name: Warn if Destroy Not Confirmed
       if: github.event.inputs.confirm_destroy != 'yes'
       run: |
         echo "Terraform destroy was skipped because 'yes' was not provided as confirmation."
         echo "No resources were destroyed.
+      working-directory: ./terraform/
