@@ -4,11 +4,13 @@
 This project outlines the deployment of the AWS Threat Composer application using Docker, AWS ECS (Fargate), an Application Load Balancer (ALB), and Terraform for infrastructure as code.
 
 --- 
+
+
 ## Introduction
 
 This project demonstrates a streamlined process for deploying a containerized web application to AWS. It leverages Docker for efficient application packaging, GitHub Actions for automated image building and pushing to ECR, and Terraform for defining and managing all necessary AWS infrastructure, including, ECS, Fargate, ALB and Route53. The goal is to create a robust, scalable, and highly available web service accessible via my custom domain.
 
----Architecture diagram--- 
+![Architecture](images/diagram.jpg)
 
 ### Architecture & Components
 
@@ -75,6 +77,8 @@ Important Note: The base domain (ysolomprojects.com) and its initial Hosted Zone
 ECR Repository
 Elastic Container Registry (ECR): A fully-managed Docker container registry that stores our application's Docker images. Terraform will reference the image URI from this repository in the ECS Task Definition.
 
+![End result](images/end.jpg)
+
 ### 5. Considerations
 
 .dockerignore: Crucial for efficient Docker builds. Files like node_modules and other non-essential artifacts are excluded to keep the Docker image small and build times fast.
@@ -82,6 +86,7 @@ Elastic Container Registry (ECR): A fully-managed Docker container registry that
 .gitignore: The .terraform directory (containing Terraform's state files and plugins) is included in .gitignore to prevent it from being committed to source control, ensuring a clean repository and avoiding potential conflicts with team members.
 
 Understanding resource dependencies is key to successful Terraform deployments and destructions. This causes most issues when deploying an application at production scale.
+
 
 
 ### Automation with GitHub Actions
@@ -116,4 +121,3 @@ Apply Terraform changes (terraform apply). This will deploy or update your AWS i
 
 For destruction (terraform destroy): This would be a separate, often manual, workflow trigger to tear down the infrastructure.
 ```
-
