@@ -27,6 +27,7 @@ jobs:
       run: |
         IMAGE_TAG=$(date +%s)
         echo "::set-output name=tag::$IMAGE_TAG"
+        cd app
         docker build -t project-ecs:$IMAGE_TAG .
 
     - name: Push the Docker image to ECR 
