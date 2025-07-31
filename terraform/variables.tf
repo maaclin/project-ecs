@@ -1,7 +1,7 @@
 # VPC Configuration Variables
 
 
-variable "vpc_cidr_block" {
+variable "vpc_cidr" {
   description = "The CIDR block for the VPC."
   type        = string
 }

@@ -5,12 +5,12 @@ output "alb_sg" {
 }
 
 output "alb_target" {
-    value = aws_lb_target_group.alb_target.arn
+    value = aws_lb_target_group.alb_tg.arn
   
 }
 
 output "alb_listener" {
-    value = aws_lb_listener.https.arn
+    value = aws_lb_listener.ecs_listener.arn
   
 }
 
