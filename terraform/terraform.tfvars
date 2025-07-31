@@ -2,7 +2,7 @@
 
 # VPC Variables
 
-vpc_cidr     = "10.0.0.0/16"
+vpc_cidr           = "10.0.0.0/16"
 vpc_name           = "project-ecs-vpc"
 public_subnet      = ["10.0.1.0/24", "10.0.2.0/24"]
 availability_zones = ["eu-west-2a", "eu-west-2b"]
