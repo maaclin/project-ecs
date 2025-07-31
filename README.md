@@ -20,36 +20,31 @@ The deployment architecture is built upon several key AWS services and component
 The application is containerized using a multi-stage Dockerfile to optimize image size and build efficiency.
 
 Dockerfile Breakdown:
+- Stage 1 (builder): Uses a Node.js base image to install application dependencies (yarn install) and build the static front-end files (yarn build). This results in a /app/build directory containing the compiled application.
 
-Stage 1 (builder): Uses a Node.js base image to install application dependencies (yarn install) and build the static front-end files (yarn build). This results in a /app/build directory containing the compiled application.
-
-Stage 2 (nginx:alpine): Uses a lightweight Nginx image. It removes default Nginx content and copies the static files from the builder stage into Nginx's web root (/usr/share/nginx/html). The Nginx server is configured to expose port 8080 (though typically Nginx defaults to 80, this indicates a custom setting).
+- Stage 2 (nginx:alpine): Uses a lightweight Nginx image. It removes default Nginx content and copies the static files from the builder stage into Nginx's web root (/usr/share/nginx/html). The Nginx server is configured to expose port 8080 (though typically Nginx defaults to 80, this indicates a custom setting).
 
 Local Testing:
 Before deployment, the Docker image is built and tested locally (docker build, docker run) to ensure the application functions correctly within its container.
+
+ECR Repository:
+
+- Elastic Container Registry (ECR): A fully-managed Docker container registry that stores our application's Docker images. Terraform will reference the image URI from this repository in the ECS Task Definition.
 
 #### 2. AWS Infrastructure (Terraform)
 
 All AWS resources are defined and provisioned using Terraform, ensuring IAC and DRY principles are followed. Resources are initially defined in a single file for clarity and then organized into modules for better maintainability and reusability.
 
-- (VPC): A logically isolated section of the AWS Cloud where our resources reside.
+(VPC): An isolated section of the AWS Cloud where our resources reside.
 
 - Public Subnets: Subnets within the VPC configured to have direct access to the internet, where public-facing resources like the ALB will be placed.
-
 - Internet Gateway (IGW): Enables communication between the VPC and the internet.
-
 - Route Table & Associations: Defines rules for network traffic, directing internet-bound traffic through the Internet Gateway.
-
 - Load Balancing & Security (ALB): Application Load Balancer (ALB): Distributes incoming application traffic across multiple targets (our ECS tasks) in multiple Availability Zones for high availability and fault tolerance.
-
 - Security Groups: Act as virtual firewalls to control inbound and outbound traffic for both the ALB and the ECS tasks, ensuring only necessary ports are open.
-
-ALB Security Group: Allows inbound traffic on ports 80 (HTTP) and 443 (HTTPS) from the internet. ECS Security Group: Allows inbound traffic on the application's port (e.g., 8080, if that's what your app listens on, or 40 as per your note) only from the ALB's security group.
-
+- ALB Security Group: Allows inbound traffic on ports 80 (HTTP) and 443 (HTTPS) from the internet. ECS Security Group: Allows inbound traffic on the application's port (e.g., 8080, if that's what your app listens on, or 40 as per your note) only from the ALB's security group.
 - Target Group: A logical grouping of targets (our ECS tasks) that the ALB routes traffic to. It includes health checks to ensure traffic is only sent to healthy instances.
-
 - ALB Listener: Configured to listen for incoming connections on specific ports (e.g., 80 and 443) and forward them to the target group based on rules.
-
 - AWS Certificate Manager (ACM): Provides an SSL/TLS certificate to enable HTTPS (secure) communication for our application. ACM provides a CNAME record that must be added to your DNS (Route 53) to validate domain ownership and issue the certificate. This CNAME record is created using Terraform.
 
 - The ALB Listener is then configured to use this ACM certificate for HTTPS traffic.
@@ -58,24 +53,19 @@ ALB Security Group: Allows inbound traffic on ports 80 (HTTP) and 443 (HTTPS) fr
 
 ECS Cluster: A logical grouping of tasks or services.
 
-ECS Task Definition: A blueprint for running your Docker containers, specifying the Docker image, CPU, memory, networking mode (e.g., awsvpc), and other container settings.
+- ECS Task Definition: A blueprint for running your Docker containers, specifying the Docker image, CPU, memory, networking mode (e.g., awsvpc), and other container settings.
+- ECS Service: Maintains the desired number of tasks in the cluster, handles deployments, and integrates with the ALB for load balancing.
+- Fargate Launch Type: Eliminates the need to manage underlying EC2 instances, as AWS fully manages the compute capacity.
+- IAM Roles: Necessary IAM roles are created to allow ECS tasks and the ECS service to interact with other AWS services (e.g., pulling images from ECR, logging to CloudWatch).
 
-ECS Service: Maintains the desired number of tasks in the cluster, handles deployments, and integrates with the ALB for load balancing.
-
-Fargate Launch Type: Eliminates the need to manage underlying EC2 instances, as AWS fully manages the compute capacity.
-
-IAM Roles: Necessary IAM roles are created to allow ECS tasks and the ECS service to interact with other AWS services (e.g., pulling images from ECR, logging to CloudWatch).
 
 #### 4. Domain Name System (Route 53)
 
 Route 53 Hosted Zone: Manages DNS records for ysolomprojects.com (or your chosen domain).
 
-A Record (Alias): An A record (specifically an Alias record) is created in Route 53 to point your application's CNAME record (ecs.ysolomprojects.com) to the DNS name of the Application Load Balancer. This allows users to access your application via a friendly domain name.
+- A Record (Alias): An A record (specifically an Alias record) is created in Route 53 to point your application's CNAME record (ecs.ysolomprojects.com) to the DNS name of the Application Load Balancer. This allows users to access your application via a friendly domain name.
 
 Important Note: The base domain (ysolomprojects.com) and its initial Hosted Zone need to be created manually in the AWS Console before Terraform runs, as Terraform usually manages records within an existing zone.
-
-ECR Repository
-Elastic Container Registry (ECR): A fully-managed Docker container registry that stores our application's Docker images. Terraform will reference the image URI from this repository in the ECS Task Definition.
 
 ![End result](./images/end.png)
 
@@ -86,7 +76,6 @@ Elastic Container Registry (ECR): A fully-managed Docker container registry that
 .gitignore: The .terraform directory (containing Terraform's state files and plugins) is included in .gitignore to prevent it from being committed to source control, ensuring a clean repository and avoiding potential conflicts with team members.
 
 Understanding resource dependencies is key to successful Terraform deployments and destructions. This causes most issues when deploying an application at production scale.
-
 
 
 ### Automation with GitHub Actions
