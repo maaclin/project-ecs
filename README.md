@@ -5,12 +5,104 @@ This project outlines the deployment of the AWS Threat Composer application usin
 
 --- 
 
-
 ## Introduction
 
 This project demonstrates a streamlined process for deploying a containerized web application to AWS. It leverages Docker for efficient application packaging, GitHub Actions for automated image building and pushing to ECR, and Terraform for defining and managing all necessary AWS infrastructure, including, ECS, Fargate, ALB and Route53. The goal is to create a robust, scalable, and highly available web service accessible via my custom domain.
 
 ![Architecture](./images/diagram.png)
+
+--- 
+
+### Directory Structure 
+
+```
+/
+├── .github/
+│   └── workflows/
+│       ├── docker-build.yaml
+│       ├── terraform-apply.yaml
+│       └── terraform-destroy.yml
+├── app/
+├── images/
+├── terraform/
+│   ├── modules/
+│   │   ├── alb/
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── iam/
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── ecs/
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── dns/
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── vpc/
+│   │   │  ├── main.tf
+│   │   │  ├── outputs.tf
+│   │   │  └── variables.tf
+│   │   └── acm/
+│   │       ├── main.tf
+│   │       ├── outputs.tf
+│   │       └── variables.tf
+│   ├── main.tf
+│   ├── outputs.tf
+│   ├── providers.tf
+│   ├── terraform.tfvars
+│   └── variables.tf
+├── .gitignore
+└── README.md
+```
+---
+
+### Deployment Workflow 
+
+1. Docker Build
+
+- New changes are pushed to Github
+- Workflow builds the image
+- Pushes the image to Amazon ECR
+- Latest image deployed by ECS 
+
+![Docker-build](./images/docker-build.png)
+
+2. Terraform Plan + Apply 
+
+- New changes are pushed to Github
+- Performs an init, plan and apply
+- Creates all resources needed for application 
+
+
+![Tf-apply](./images/tf-apply.png)
+
+3. Terraform Destroy
+
+- Destroys all resources when triggered using a workflow trigger on Github Actions and "yes" is explicitly passed
+
+![Tf-destroy](./images/tf-destroy.png)
+
+--- 
+
+### Final Product - ecs.ysolomprojects.co.uk
+
+![End result](./images/end.png)
+
+---
+
+### Considerations
+
+.dockerignore: Crucial for efficient Docker builds. Files like node_modules and other non-essential artifacts are excluded to keep the Docker image small and build times fast.
+
+.gitignore: The .terraform directory (containing Terraform's state files and plugins) is included in .gitignore to prevent it from being committed to source control, ensuring a clean repository and avoiding potential conflicts with team members.
+
+Understanding resource dependencies is key to successful Terraform deployments and destructions. This causes most issues when deploying an application at production scale.
+
+--- 
 
 ### Architecture & Components
 
@@ -46,8 +138,8 @@ All AWS resources are defined and provisioned using Terraform, ensuring IAC and 
 - Target Group: A logical grouping of targets (our ECS tasks) that the ALB routes traffic to. It includes health checks to ensure traffic is only sent to healthy instances.
 - ALB Listener: Configured to listen for incoming connections on specific ports (e.g., 80 and 443) and forward them to the target group based on rules.
 - AWS Certificate Manager (ACM): Provides an SSL/TLS certificate to enable HTTPS (secure) communication for our application. ACM provides a CNAME record that must be added to your DNS (Route 53) to validate domain ownership and issue the certificate. This CNAME record is created using Terraform.
-
 - The ALB Listener is then configured to use this ACM certificate for HTTPS traffic.
+
 
 #### 3. Container Orchestration (ECS on Fargate)
 
@@ -67,22 +159,12 @@ Route 53 Hosted Zone: Manages DNS records for ysolomprojects.com (or your chosen
 
 Important Note: The base domain (ysolomprojects.com) and its initial Hosted Zone need to be created manually in the AWS Console before Terraform runs, as Terraform usually manages records within an existing zone.
 
-![End result](./images/end.png)
-
-### 5. Considerations
-
-.dockerignore: Crucial for efficient Docker builds. Files like node_modules and other non-essential artifacts are excluded to keep the Docker image small and build times fast.
-
-.gitignore: The .terraform directory (containing Terraform's state files and plugins) is included in .gitignore to prevent it from being committed to source control, ensuring a clean repository and avoiding potential conflicts with team members.
-
-Understanding resource dependencies is key to successful Terraform deployments and destructions. This causes most issues when deploying an application at production scale.
-
 
 ### Automation with GitHub Actions
 
-Now, to the backbone of DevOps... CI/CD. We 
+Now, to the backbone of DevOps... CI/CD.
 
-Continuous Integration (CI) - Docker Image:
+#### Continuous Integration (CI) - Docker Image:
 
 Trigger: On changes to the main branch (or specific Dockerfile/application code paths).
 
@@ -96,17 +178,18 @@ Steps:
 - Push the tagged image to the ECR repository.
 ```
 
-Continuous Delivery (CD) - Terraform Deployment:
+#### Continuous Delivery (CD) - Terraform Deployment:
 
-Trigger: (You'll need to define this: e.g., on successful Docker image push, or a manual trigger, or a separate commit to your Terraform code).
+Trigger: This will use a manual trigger to ensure accidental deletion does not occur.
 
 Steps:
-```
-Checkout code (including Terraform files).
-Configure AWS credentials (using GitHub Secrets).
-Initialize Terraform (terraform init).
-Plan Terraform changes (terraform plan).
-Apply Terraform changes (terraform apply). This will deploy or update your AWS infrastructure based on your .tf files.
 
-For destruction (terraform destroy): This would be a separate, often manual, workflow trigger to tear down the infrastructure.
+```
+- Checkout code (including Terraform files).
+- Configure AWS credentials (using GitHub Secrets).
+- Initialize Terraform (terraform init).
+- Plan Terraform changes (terraform plan).
+- Apply Terraform changes (terraform apply). 
+
+This will deploy or update your AWS infrastructure based on your .tf files.
 ```
