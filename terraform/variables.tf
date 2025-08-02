@@ -92,6 +92,8 @@ variable "target_type" {
   type        = string
 }
 
+
+
 # ECS Variables
 
 variable "ecr_uri" {

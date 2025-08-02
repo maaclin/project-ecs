@@ -72,3 +72,20 @@ resource "aws_lb_listener" "ecs_listener" {
   }
   depends_on = [aws_lb_target_group.alb_tg]
 }
+
+resource "aws_lb_listener" "http_listen" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "redirect"
+    target_group_arn = aws_lb_target_group.alb_tg.arn
+    
+    redirect {
+      port        = 443
+      status_code = "HTTP_301"
+      protocol    = "HTTPS"
+    }
+  }
+}

@@ -1,7 +1,13 @@
-name: Push the Docker image to AWS ECR Repo
+
+name: ECR Build and Push
 on:
   push:
     branches: [ "main" ]
+
+defaults:
+  run:
+    working-directory: ./app
+    
 jobs:
   build:
     name: Build and Push Docker Image
@@ -27,7 +33,6 @@ jobs:
       run: |
         IMAGE_TAG=$(date +%s)
         echo "::set-output name=tag::$IMAGE_TAG"
-        cd app
         docker build -t project-ecs:$IMAGE_TAG .
 
     - name: Push the Docker image to ECR 

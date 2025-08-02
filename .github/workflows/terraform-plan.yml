@@ -1,0 +1,55 @@
+
+name: Terraform Plan
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+  workflow_dispatch:
+
+defaults:
+    run:
+      working-directory: ./terraform
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+        
+    - name: Setup Terraform CLI
+      uses: hashicorp/setup-terraform@v3
+      with:
+          terraform_version: 1.7.5
+
+    - name: Terraform check
+      run: |
+        terraform init
+        terraform fmt -check
+        terraform validate
+    
+      # Ensures the Terraform files are linted and valid
+
+    - name: Linting 
+      uses: terraform-linters/setup-tflint@v4
+    - run: |
+       tflint --init
+       tflint
+
+      # Ensures there are no admin privileges on IAM policies, 
+      # No hardcoded keys and ALB listener is set to HTTPS
+
+    - name: Checkov Scan
+      id: checkov
+      uses: bridgecrewio/checkov-action@v2
+      with : 
+        check: CKV_AWS_1, CKV_AWS_2, CKV_AWS_41
+  
+    - name: Terraform Plan
+      run: terraform plan
+

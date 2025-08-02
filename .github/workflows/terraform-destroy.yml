@@ -1,5 +1,5 @@
 
-name: 'Terraform Destroy'
+name: Terraform Destroy
 
 on:
   workflow_dispatch:
@@ -8,25 +8,24 @@ on:
           description: 'Type "yes" to confirm destruction'
           required: true
           default: 'no'
-
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }} 
+  
+defaults:
+  run:
+    working-directory: ./terraform/
+    
 jobs:
   terraform:
     name: 'Terraform Destroy'
     runs-on: ubuntu-latest
-    environment: development
-    
-    permissions:
-      contents: read 
-
+  
     steps:
     - name: Checkout
       uses: actions/checkout@v4
       
-    - name: Setup Terraform CLI
-      uses: hashicorp/setup-terraform@v3
-      with:
-          terraform_version: 1.7.5
-
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -34,22 +33,16 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
     
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform/
-
-    - name: Terraform Plan
-      run: terraform plan -destroy -input=false
-      working-directory: ./terraform/
-
     - name: Terraform Destroy
       if: github.event.inputs.confirm_destroy == 'yes'
-      run: terraform destroy -auto-approve -input=false
-      working-directory: ./terraform/
+      run: |
+        terraform init
+        terraform destroy -auto-approve -input=false
+
 
     - name: Warn if Destroy Not Confirmed
       if: github.event.inputs.confirm_destroy != 'yes'
       run: |
         echo "Terraform destroy was skipped because 'yes' was not provided as confirmation."
-        echo "No resources were destroyed.
-      working-directory: ./terraform/
+        echo "No resources were destroyed."
+
