@@ -17,8 +17,9 @@ This project demonstrates a streamlined process for deploying a containerised we
 /
 ├── .github/
 │   └── workflows/
-│       ├── docker-build.yaml
-│       ├── terraform-apply.yaml
+│       ├── docker-build.yml
+│       ├── terraform-plan.yml
+│       ├── terraform-apply.yml
 │       └── terraform-destroy.yml
 ├── app/
 ├── images/
@@ -156,20 +157,33 @@ Steps:
 - Push the tagged image to the ECR repository.
 ```
 
+#### Continuous Integration (CI) - Terraform Plan:
+
+Trigger: On changes to the main branch 
+
+Steps:
+
+```
+- Checkout code.
+- Performs terraform init, fmt and validate
+- Performs tflint to ensure files are valid
+- Performs a checkov scan checking for admin privileges, hardcoded keys and ALB listener set to HTTPS 
+
+```
+
 #### Continuous Delivery (CD) - Terraform Deployment:
 
-Trigger: This will use a manual trigger to ensure accidental deletion does not occur.
+Trigger: This will begin n changes to the main branch for our terraform apply workflow and use a manual trigger to ensure accidental deletion does not occur for terraform destroy workflow.
 
 Steps:
 
 ```
 - Checkout code (including Terraform files).
 - Configure AWS credentials (using GitHub Secrets).
-- Initialize Terraform (terraform init).
-- Plan Terraform changes (terraform plan).
-- Apply Terraform changes (terraform apply). 
+- Apply Terraform changes (terraform apply) or destroy infrastructure (terraform destroy)
 
 This will deploy or update your AWS infrastructure based on your .tf files.
+
 ```
 
 ---
