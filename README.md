@@ -1,5 +1,5 @@
 
-# AWS Threat Composer App - Deployment with Docker & Terraform
+# AWS Threat Composer App - Deployment with ECS, Fargate, Terraform and GitHub Actions 
 
 --- 
 
