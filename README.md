@@ -5,7 +5,7 @@
 
 ## Introduction
 
-This project demonstrates a streamlined process for deploying a containerised web application to AWS. It leverages Docker for efficient application packaging, GitHub Actions for automated image building and pushing to ECR and Terraform for defining and managing all necessary AWS infrastructure including - ECS, Fargate, ALB and Route53. The goal is to create a highly available web service accessible via my custom domain.
+This project demonstrates the deploying a containerised web application to AWS. I've used Docker for efficient application packaging, GitHub Actions for automated image building and pushing to ECR and Terraform for defining and managing all necessary AWS infrastructure including - ECS, Fargate, ALB and Route53. The goal is to create a highly available web service accessible via my custom domain.
 
 ![Architecture](./images/diagram.png)
 
@@ -95,11 +95,11 @@ This project demonstrates a streamlined process for deploying a containerised we
 
 ### Considerations
 
-.dockerignore: Crucial for efficient Docker builds. Files like node_modules and other non-essential artifacts are excluded to keep the Docker image small and build times fast.
+- .dockerignore: Files like node_modules and other non-essential files are excluded to keep the Docker image small and build times fast.
 
-.gitignore: The .terraform directory (containing Terraform's state files and plugins) is included in .gitignore to prevent it from being committed to source control, ensuring a clean repository and avoiding potential conflicts with team members.
+- .gitignore: The .terraform directory which contains Terraform's state files and plugins is included in .gitignore to prevent it from being committed to source control, ensuring a clean repository and avoiding potential conflicts with team members.
 
-Understanding resource dependencies is key to successful Terraform deployments and destructions. This causes most issues when deploying an application at production scale.
+- I chose ECS because it offered integration with our AWS-based infrastructure, a simpler and cheaper setup than Kubernetes. It allowed us to focus on development rather than managing complex cluster configurations, which was the core focus of this project. For a larger project, I would possibly look into using Kubernetes due to the customisation options at your disposal. 
 
 --- 
 
@@ -114,7 +114,7 @@ The frontend is packaged using a multi-stage Dockerfile. The app is first built 
 
 #### 2. AWS Infrastructure (Terraform)
 
-All AWS resources are defined and provisioned using Terraform, ensuring IAC and DRY principles are followed. Resources are initially defined in a single file for clarity and then organized into modules for better maintainability and reusability. The setup includes:
+All AWS resources are provisioned using Terraform, ensuring IAC and DRY principles are followed. Resources were initially defined in a single main.tf for clarity and then organized into modules for better maintainability and reusability. The setup includes:
 
 - A VPC with public subnets and an internet gateway.
 
@@ -131,12 +131,12 @@ All AWS resources are defined and provisioned using Terraform, ensuring IAC and 
 
 ECS Cluster: A logical grouping of tasks or services.
 
-The app runs on AWS Fargate, which means there's no need to manage servers. The ECS service ensures the container stays running and handles deployments. Task definitions specify how the container runs, and IAM roles give the service access to other AWS features like logging and image retrieval.
+The app runs on AWS Fargate, which means there's no need to manage servers. The ECS service ensures the container stays running and handles deployments. Task definitions specify how the container runs and IAM roles give the service access to other AWS features like logging and image retrieval from ECR.
 
 
 #### 4. Domain Name System (Route 53)
 
-Route 53 is used to point a subdomain (e.g. ecs.ysolomprojects.com) to the load balancer, so users can access the site via a clean URL. A verified SSL certificate ensures the connection is secure.
+Route 53 is used to point a subdomain (ecs.ysolomprojects.com) to the load balancer, so users can access the site via URL instead of our load balancer url. A verified SSL certificate from ACM ensures the connection is secure.
 
 
 ### Automation with GitHub Actions
